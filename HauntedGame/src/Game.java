@@ -1,9 +1,7 @@
 import java.util.Scanner;
 import java.io.*;
-import java.util.Queue;
-import java.util.Stack;
 import java.util.ArrayList;
-import java.util.LinkedList;
+
 
 public class Game {
 
@@ -15,6 +13,7 @@ public class Game {
     public static int currentLocale = 0;            // Player starts in locale 0.
     public static String command;                   // What the player types as he or she plays the game.
     public static boolean stillPlaying = true;      // Controls the game loop.
+    public static boolean gameOver = true;
     public static Locale[] locations;               // An uninitialized array of type Locale. See init() for initialization.
     public static Items[] itemArray;
     public static Items[] inventory;
@@ -22,8 +21,8 @@ public class Game {
     public static int moves = 0;                    // Counter of the player's moves.
     public static int score = 5;                    // Tracker of the player's score.
     public static double gold = 0;
-    public static Queue<String> queue;
-    public static Stack<String> backwards;
+    public static Queue forwards = new Queue();
+    public static Stack backwards = new Stack();
     public static boolean mapAcquired = false;
     
     public static void main(String[] args) {
@@ -208,34 +207,23 @@ public class Game {
     private static void navigate() {
         final int INVALID = currentLocale;
         int dir = INVALID; 
-        
-        backwards = new Stack<String>();
-        queue = new LinkedList<String>();
       
         if (        command.equalsIgnoreCase("north") || command.equalsIgnoreCase("n") ) {
             dir = locations[currentLocale].getNorth();
-            backwards.add("north");
-            queue.add("north");
-            counter++;
+
         } else if ( command.equalsIgnoreCase("south") || command.equalsIgnoreCase("s") ) {
             dir = locations[currentLocale].getSouth();
-            backwards.add("south");
-            queue.add("south");
-            counter++;
+            
         } else if ( command.equalsIgnoreCase("east")  || command.equalsIgnoreCase("e") ) {
             dir = locations[currentLocale].getEast();
-            backwards.add("east");
-            queue.add("east");
-            counter++;
+
         } else if ( command.equalsIgnoreCase("west")  || command.equalsIgnoreCase("w") ) {
             dir = locations[currentLocale].getWest();
-            backwards.add("west");
-            queue.add("west");
-            counter++;
 
         } else if (command.equalsIgnoreCase("take")) {
         	take();
         } else if ( command.equalsIgnoreCase("quit")  || command.equalsIgnoreCase("q")) {
+            gameOver = false;
             quit();
         } else if ( command.equalsIgnoreCase("help")  || command.equalsIgnoreCase("h")) {
             help();   
@@ -268,7 +256,12 @@ public class Game {
         } else {
             currentLocale = dir;
             moves = moves + 1;
-
+            try{
+                forwards.enqueue(locations[currentLocale].getId());
+                backwards.push(locations[currentLocale].getId());
+            }  catch (Exception ex) {
+                System.out.println("Caught exception: " + ex.getMessage());
+            };
             if (locations[dir].getHasVisited() == false && dir != 0){
                 score = score + 5;
                 gold = gold + 5;
@@ -278,6 +271,7 @@ public class Game {
         
         if(score == 40){
         	System.out.println("You have successfully navigated through the map and find the exit to safety.");
+        	gameOver = false;
         	quit();
         }
        }
@@ -416,19 +410,82 @@ public class Game {
         System.out.println("   If you are in the Magick Shoppe:");
         System.out.println("   b/buy");
     }
+    private static void queue() {
+        System.out.println("Your Path Forwards:");
+        System.out.println("Is Empty: " + forwards.isEmpty());
+        System.out.println("Capacity: " + forwards.getCapacity());
 
+        try {
+            //Prints out up to 15 Locations
+            System.out.println("Locations: ");
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+            System.out.println(locations[forwards.dequeue()].getName());
+
+        } catch (Exception ex) {
+            System.out.println("Caught exception: " + ex.getMessage());
+        }
+    }
+    
+    private static void stack() {
+        System.out.println("Your Path Backwards:");
+        System.out.println("Is Empty: " + backwards.isEmpty());
+        System.out.println("Capacity: " + backwards.getCapacity());
+
+        try{
+            //Prints out up to 15 Locations
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+            System.out.println(locations[backwards.pop()].getName());
+
+        } catch (Exception ex) {
+            System.out.println("Caught exception: " + ex.getMessage());
+        }
+
+
+    }
+    
     private static void quit() {
-        System.out.println("Directions Taken:\n");
-        for(int i = 0; i < counter; i++){
-        	System.out.println(queue.peek() + "\n");
-        	queue.poll();
-        } 
-        System.out.println("Directions Taken Backwards:\n");
-        for(int j = 0; j < counter; j++){
-        	System.out.println(backwards.peek() + "\n");
-        	backwards.pop();
-        }        
-        System.err.println(counter);
-        stillPlaying = false;
+        if(gameOver == false){
+        	System.out.println("Thank you for playing. If you wish you see your move forwards, type forwards."
+        					+ " If you want to see your moves backwards, type backwards. If you are finished with"
+        					+ "	the game, type end.");
+        	getCommand();
+        	if(command.equalsIgnoreCase("end")){
+        		stillPlaying = false;
+        	}else if(command.equalsIgnoreCase("forwards")){
+        		queue();
+        	}else if(command.equalsIgnoreCase("backwards")){
+        		stack();
+        	}
+        }
     }
 }
